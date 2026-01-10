@@ -1,0 +1,625 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Download Manager</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+        
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 15px;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+            overflow: hidden;
+        }
+        
+        .tabs {
+            display: flex;
+            background: #f8f9fa;
+            border-bottom: 2px solid #e9ecef;
+        }
+        
+        .tab {
+            flex: 1;
+            padding: 20px;
+            text-align: center;
+            cursor: pointer;
+            font-weight: 600;
+            font-size: 16px;
+            color: #6c757d;
+            transition: all 0.3s ease;
+            border-bottom: 3px solid transparent;
+        }
+        
+        .tab:hover {
+            background: #e9ecef;
+            color: #495057;
+        }
+        
+        .tab.active {
+            background: white;
+            color: #667eea;
+            border-bottom: 3px solid #667eea;
+        }
+        
+        .tab-content {
+            display: none;
+            padding: 30px;
+            min-height: 500px;
+        }
+        
+        .tab-content.active {
+            display: block;
+        }
+        
+        .page-title {
+            color: #343a40;
+            margin-bottom: 25px;
+            font-size: 28px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        
+        .page-title i {
+            color: #667eea;
+        }
+        
+        /* Search Box */
+        .search-box {
+            background: #f8f9fa;
+            padding: 25px;
+            border-radius: 10px;
+            margin-bottom: 30px;
+            border: 1px solid #e9ecef;
+        }
+        
+        .search-input-group {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 15px;
+        }
+        
+        .search-input {
+            flex: 1;
+            padding: 14px 20px;
+            border: 2px solid #dee2e6;
+            border-radius: 8px;
+            font-size: 16px;
+            transition: border-color 0.3s ease;
+        }
+        
+        .search-input:focus {
+            outline: none;
+            border-color: #667eea;
+        }
+        
+        .search-btn {
+            padding: 14px 30px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            border-radius: 8px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: transform 0.3s ease;
+        }
+        
+        .search-btn:hover {
+            transform: translateY(-2px);
+        }
+        
+        /* Results Container */
+        .results-container {
+            background: white;
+            border-radius: 10px;
+            overflow: hidden;
+            border: 1px solid #e9ecef;
+        }
+        
+        /* YouTube Results */
+        .youtube-result {
+            display: flex;
+            padding: 20px;
+            border-bottom: 1px solid #e9ecef;
+            align-items: flex-start;
+            gap: 20px;
+        }
+        
+        .youtube-result:last-child {
+            border-bottom: none;
+        }
+        
+        .youtube-result:hover {
+            background: #f8f9fa;
+        }
+        
+        .youtube-thumbnail {
+            width: 200px;
+            height: 112px;
+            border-radius: 8px;
+            overflow: hidden;
+            flex-shrink: 0;
+        }
+        
+        .youtube-thumbnail img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+        
+        .youtube-info {
+            flex: 1;
+        }
+        
+        .youtube-title {
+            font-size: 18px;
+            font-weight: 600;
+            color: #343a40;
+            margin-bottom: 8px;
+        }
+        
+        .youtube-meta {
+            color: #6c757d;
+            font-size: 14px;
+            margin-bottom: 15px;
+        }
+        
+        .youtube-actions {
+            display: flex;
+            gap: 10px;
+        }
+        
+        .btn {
+            padding: 8px 16px;
+            border-radius: 6px;
+            border: none;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+        
+        .btn-primary {
+            background: #667eea;
+            color: white;
+        }
+        
+        .btn-primary:hover {
+            background: #5a67d8;
+        }
+        
+        .btn-success {
+            background: #48bb78;
+            color: white;
+        }
+        
+        .btn-success:hover {
+            background: #38a169;
+        }
+        
+        /* File Browser */
+        .file-browser-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+            padding: 15px;
+            background: #f8f9fa;
+            border-radius: 8px;
+        }
+        
+        .file-actions {
+            display: flex;
+            gap: 10px;
+        }
+        
+        .btn-danger {
+            background: #f56565;
+            color: white;
+        }
+        
+        .btn-danger:hover {
+            background: #e53e3e;
+        }
+        
+        .file-list {
+            border: 1px solid #e9ecef;
+            border-radius: 8px;
+            overflow: hidden;
+        }
+        
+        .file-item {
+            display: flex;
+            align-items: center;
+            padding: 15px 20px;
+            border-bottom: 1px solid #e9ecef;
+            transition: background 0.3s ease;
+        }
+        
+        .file-item:hover {
+            background: #f8f9fa;
+        }
+        
+        .file-item:last-child {
+            border-bottom: none;
+        }
+        
+        .file-checkbox {
+            margin-right: 15px;
+        }
+        
+        .file-icon {
+            margin-right: 15px;
+            color: #667eea;
+            font-size: 20px;
+        }
+        
+        .file-info {
+            flex: 1;
+        }
+        
+        .file-name {
+            font-weight: 600;
+            color: #343a40;
+            margin-bottom: 4px;
+        }
+        
+        .file-size {
+            color: #6c757d;
+            font-size: 14px;
+        }
+        
+        .file-actions-single {
+            display: flex;
+            gap: 10px;
+        }
+        
+        /* Loading */
+        .loading {
+            text-align: center;
+            padding: 40px;
+            color: #6c757d;
+        }
+        
+        .loading-spinner {
+            width: 40px;
+            height: 40px;
+            border: 4px solid #f3f3f3;
+            border-top: 4px solid #667eea;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+            margin: 0 auto 20px;
+        }
+        
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+        
+        /* Status Messages */
+        .status-message {
+            padding: 15px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+            display: none;
+        }
+        
+        .status-success {
+            background: #c6f6d5;
+            color: #22543d;
+            border: 1px solid #9ae6b4;
+        }
+        
+        .status-error {
+            background: #fed7d7;
+            color: #742a2a;
+            border: 1px solid #fc8181;
+        }
+        
+        /* Progress Bar */
+        .progress-container {
+            margin-top: 20px;
+        }
+        
+        .progress-bar {
+            height: 8px;
+            background: #e9ecef;
+            border-radius: 4px;
+            overflow: hidden;
+        }
+        
+        .progress-fill {
+            height: 100%;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            width: 0%;
+            transition: width 0.3s ease;
+        }
+    </style>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+</head>
+<body>
+    <div class="container">
+        <div class="tabs">
+            <div class="tab active" onclick="switchTab(0)">
+                <i class="fas fa-download"></i> YouTube Downloader
+            </div>
+            <div class="tab" onclick="switchTab(1)">
+                <i class="fas fa-folder"></i> File Browser (~/dl)
+            </div>
+        </div>
+        
+        <!-- Tab 1: YouTube Downloader -->
+        <div class="tab-content active" id="tab1">
+            <h1 class="page-title">
+                <i class="fas fa-download"></i> YouTube Downloader
+            </h1>
+            
+            <div class="search-box">
+                <div class="search-input-group">
+                    <input type="text" class="search-input" id="youtubeQuery" 
+                           placeholder="Enter YouTube URL or search term...">
+                    <button class="search-btn" onclick="searchYouTube()">
+                        <i class="fas fa-search"></i> Search
+                    </button>
+                </div>
+                <div class="status-message" id="youtubeStatus"></div>
+            </div>
+            
+            <div class="results-container" id="youtubeResults">
+                <div class="loading" id="youtubeLoading">
+                    <div class="loading-spinner"></div>
+                    <p>Search for YouTube videos to get started</p>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Tab 2: File Browser -->
+        <div class="tab-content" id="tab2">
+            <h1 class="page-title">
+                <i class="fas fa-folder"></i> File Browser
+                <span style="font-size: 14px; color: #6c757d; margin-left: 10px;">~/dl</span>
+            </h1>
+            
+            <div class="search-box">
+                <div class="search-input-group">
+                    <input type="text" class="search-input" id="fileQuery" 
+                           placeholder="Search files in ~/dl folder..." 
+                           onkeyup="searchFiles()">
+                    <button class="search-btn" onclick="searchFiles()">
+                        <i class="fas fa-search"></i> Search
+                    </button>
+                </div>
+            </div>
+            
+            <div class="file-browser-header">
+                <div>
+                    <button class="btn btn-success" onclick="downloadSelected()">
+                        <i class="fas fa-download"></i> Download Selected
+                    </button>
+                    <button class="btn btn-primary" onclick="zipAndDownload()">
+                        <i class="fas fa-file-archive"></i> Zip & Download Selected
+                    </button>
+                </div>
+                <div class="file-actions">
+                    <button class="btn btn-danger" onclick="clearSelection()">
+                        <i class="fas fa-times"></i> Clear Selection
+                    </button>
+                </div>
+            </div>
+            
+            <div class="status-message" id="fileStatus"></div>
+            
+            <div class="results-container">
+                <div class="file-list" id="fileList">
+                    <div class="loading" id="fileLoading">
+                        <div class="loading-spinner"></div>
+                        <p>Loading files...</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Tab switching
+        function switchTab(tabIndex) {
+            // Update tabs
+            document.querySelectorAll('.tab').forEach((tab, index) => {
+                tab.classList.toggle('active', index === tabIndex);
+            });
+            
+            // Update tab content
+            document.querySelectorAll('.tab-content').forEach((content, index) => {
+                content.classList.toggle('active', index === tabIndex);
+            });
+            
+            // Load files when switching to tab 2
+            if (tabIndex === 1) {
+                searchFiles();
+            }
+        }
+        
+        // YouTube Downloader Functions
+        async function searchYouTube() {
+            const query = document.getElementById('youtubeQuery').value.trim();
+            if (!query) {
+                showStatus('youtubeStatus', 'Please enter a search query or URL', 'error');
+                return;
+            }
+            
+            const resultsDiv = document.getElementById('youtubeResults');
+            const loadingDiv = document.getElementById('youtubeLoading');
+            loadingDiv.style.display = 'block';
+            resultsDiv.innerHTML = '';
+            resultsDiv.appendChild(loadingDiv);
+            
+            try {
+                const formData = new FormData();
+                formData.append('action', 'search');
+                formData.append('query', query);
+                
+                const response = await fetch('/', {
+                    method: 'POST',
+                    body: formData
+                });
+                
+                const videos = await response.json();
+                displayYouTubeResults(videos);
+                showStatus('youtubeStatus', `Found ${videos.length} video(s)`, 'success');
+            } catch (error) {
+                console.error('Error:', error);
+                showStatus('youtubeStatus', 'Error searching YouTube', 'error');
+            } finally {
+                loadingDiv.style.display = 'none';
+            }
+        }
+        
+        function displayYouTubeResults(videos) {
+            const resultsDiv = document.getElementById('youtubeResults');
+            
+            if (videos.length === 0) {
+                resultsDiv.innerHTML = `
+                    <div class="loading">
+                        <p>No videos found. Try a different search term.</p>
+                    </div>
+                `;
+                return;
+            }
+            
+            let html = '';
+            videos.forEach(video => {
+                html += `
+                    <div class="youtube-result">
+                        <div class="youtube-thumbnail">
+                            <img src="${video.thumbnail || 'https://via.placeholder.com/200x112?text=No+Thumbnail'}" 
+                                 alt="${video.title}">
+                        </div>
+                        <div class="youtube-info">
+                            <div class="youtube-title">${escapeHtml(video.title)}</div>
+                            <div class="youtube-meta">
+                                ${video.duration ? `<i class="far fa-clock"></i> ${video.duration}` : ''}
+                            </div>
+                            <div class="youtube-actions">
+                                <button class="btn btn-primary" onclick="downloadVideo('${escapeHtml(video.url)}')">
+                                    <i class="fas fa-download"></i> Download Video
+                                </button>
+                                <button class="btn btn-success" onclick="downloadVideo('${escapeHtml(video.url)}', 'audio')">
+                                    <i class="fas fa-music"></i> Download Audio
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                `;
+            });
+            
+            resultsDiv.innerHTML = html;
+        }
+        
+        function downloadVideo(url, type = 'video') {
+            showStatus('youtubeStatus', `Starting ${type} download...`, 'success');
+            
+            // You'll need to implement the actual YouTube download logic here
+            // This is a placeholder that shows how to make the request
+            const formData = new FormData();
+            formData.append('action', 'download_youtube');
+            formData.append('url', url);
+            formData.append('type', type);
+            
+            fetch('/', {
+                method: 'POST',
+                body: formData
+            })
+            .then(response => response.json())
+            .then(data => {
+                showStatus('youtubeStatus', data.message || 'Download started', 'success');
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                showStatus('youtubeStatus', 'Download failed', 'error');
+            });
+        }
+        
+        // File Browser Functions
+        async function searchFiles() {
+            const query = document.getElementById('fileQuery').value.trim();
+            const fileListDiv = document.getElementById('fileList');
+            const loadingDiv = document.getElementById('fileLoading');
+            
+            loadingDiv.style.display = 'block';
+            fileListDiv.innerHTML = '';
+            fileListDiv.appendChild(loadingDiv);
+            
+            try {
+                const response = await fetch(`/api/files?q=${encodeURIComponent(query)}`);
+                const files = await response.json();
+                displayFiles(files);
+            } catch (error) {
+                console.error('Error:', error);
+                showStatus('fileStatus', 'Error loading files', 'error');
+            } finally {
+                loadingDiv.style.display = 'none';
+            }
+        }
+        
+        function displayFiles(files) {
+            const fileListDiv = document.getElementById('fileList');
+            
+            if (files.length === 0) {
+                fileListDiv.innerHTML = `
+                    <div class="loading">
+                        <p>No files found in ~/dl folder</p>
+                    </div>
+                `;
+                return;
+            }
+            
+            let html = '';
+            files.forEach(file => {
+                const icon = getFileIcon(file.extension);
+                html += `
+                    <div class="file-item">
+                        <input type="checkbox" class="file-checkbox" 
+                               onchange="toggleFileSelection('${escapeHtml(file.filename)}', this.checked)"
+                               ${file.selected ? 'checked' : ''}>
+                        <div class="file-icon">${icon}</div>
+                        <div class="file-info">
+                            <div class="file-name">${escapeHtml(file.filename)}</div>
+                            <div class="file-size">${escapeHtml(file.size_formatted)}</div>
+                        </div>
+                        <div class="file-actions-single">
+                            <button class="btn btn-primary" onclick="downloadSingleFile('${escapeHtml(file.filename)}')">
+                                <i class="fas fa-download"></i> Download
+                            </button>
+                        </div>
+                    </div>
+                `;
+            });
+            
+            fileListDiv.innerHTML = html;
+        }
+        
+        function getFileIcon(extension) {
+            const icons = {
+                '.mp4': '<i class="fas fa-file-video"></i>',
+                '.avi': '<i class="fas fa-file-video"></i>',
+                '.mkv': '<i class="fas fa-file-video"></i>',
+                '.mp3': '<i class="fas fa-file-audio"></i>',
+                '.wav': '<i class="fas fa-file-audio"></i>',
+                '.zip': '<i class="fas fa-file-archive"></i>',
+                '.rar': '<i class="fas fa-file-archive"></i>',
+                '.jpg': '<i class="fas fa-file-image"></i>',
+                '.png': '<i class="fas fa-file-
