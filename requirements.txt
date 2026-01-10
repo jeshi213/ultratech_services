@@ -1,3 +1,8 @@
-Flask==3.0.3
-yt-dlp==2025.11.20
-gunicorn==23.0.0
+# Essential packages only
+Flask==3.0.0
+yt-dlp==2023.11.16
+youtube-search-python==1.6.6
+requests==2.31.0
+Pillow==10.1.0
+humanize==4.8.0
+python-dotenv==1.0.0
